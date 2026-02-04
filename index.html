@@ -52,7 +52,7 @@
           <div class="settings-content">
           
           <div class="form-group">
-            <label for="apiKey">OpenAI API Key:</label>
+            <label for="apiKey">OpenAI API Key: <a href="https://platform.openai.com/api-keys" target="_blank" class="link-small" style="font-size: 0.8em; margin-left: 5px; color: #646cff; text-decoration: none;">(Get key)</a></label>
             <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
           </div>
 
@@ -78,10 +78,7 @@
 
           <div class="form-group">
             <label for="modelSelect">Model:</label>
-            <select id="modelSelect">
-              <option value="gpt-4o-mini-realtime-preview-2024-12-17">GPT-4o Mini Realtime (default)</option>
-              <option value="gpt-4o-realtime-preview-2024-12-17">GPT-4o Realtime</option>
-            </select>
+            <input type="text" id="modelSelect" value="gpt-4o-mini-realtime-preview-2024-12-17" placeholder="gpt-4o-mini-realtime-preview-2024-12-17">
           </div>
 
           <div class="form-group">

@@ -158,7 +158,6 @@ function setupEventListeners() {
   if (elements.saveSettings) {
     elements.saveSettings.addEventListener('click', () => {
       saveSettings();
-      alert('Настройки сохранены!');
     });
   }
   if (elements.clearSettings) {
@@ -184,7 +183,7 @@ function setupEventListeners() {
   }
   
   if (elements.modelSelect) {
-    elements.modelSelect.addEventListener('change', () => {
+    elements.modelSelect.addEventListener('input', () => {
       state.model = elements.modelSelect.value;
     });
   }
@@ -423,7 +422,7 @@ async function connect() {
     await peerConnection.setLocalDescription(offer);
     
     // 7. Send offer to OpenAI and get answer
-    const model = state.model || 'gpt-4o-mini-realtime-preview-2024-12-17';
+    const model = elements.modelSelect?.value || state.model || 'gpt-4o-mini-realtime-preview-2024-12-17';
     const response = await fetch(`https://api.openai.com/v1/realtime?model=${model}`, {
       method: 'POST',
       headers: {
@@ -543,6 +542,25 @@ function handleServerEvent(event) {
       handleTranscription(data.transcript);
       break;
       
+    case 'output_audio_buffer.started':
+      // Audio playback started - turn on indicator
+      state.isSpeaking = true;
+      setBotSpeaking(true);
+      console.log(`[${ts()}] 🔊 [AUDIO START] Bot started speaking`);
+      break;
+      
+    case 'output_audio_buffer.stopped':
+      // Audio playback stopped - turn off indicator
+      state.isSpeaking = false;
+      setBotSpeaking(false);
+      console.log(`[${ts()}] 🔇 [AUDIO STOPPED] Bot finished speaking`);
+      break;
+      
+    case 'response.done':
+      // Response fully completed
+      handleResponseDone(data);
+      break;
+      
     case 'response.audio_transcript.delta':
       // Partial agent response transcript (many events, don't log)
       break;
@@ -553,10 +571,6 @@ function handleServerEvent(event) {
         console.log(`[${ts()}] 🤖 [AGENT]`, data.transcript);
         logMessage(data.transcript, 'agent');
       }
-      break;
-      
-    case 'response.done':
-      handleResponseDone(data);
       break;
       
     case 'response.function_call_arguments.done':
@@ -635,8 +649,6 @@ function processTranscript(text) {
 }
 
 function respond() {
-  state.isSpeaking = true;
-  setBotSpeaking(true);
   setStatus('speaking', 'Speaking...');
   
   sendEvent({
@@ -648,9 +660,6 @@ function respond() {
 }
 
 function handleResponseDone(data) {
-  state.isSpeaking = false;
-  setBotSpeaking(false);
-  
   if (state.mode === AgentMode.DIALOGUE) {
     setStatus('dialogue', 'Dialogue active');
     resetDialogueTimeout();
@@ -713,8 +722,6 @@ async function handleFunctionCall(data) {
     }
   });
   
-  // Set flag that agent will speak
-  state.isSpeaking = true;
   setStatus('speaking', 'Speaking...');
   
   // Request response continuation
