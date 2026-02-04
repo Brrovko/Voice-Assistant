@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Agent</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎧</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <h1>Voice Agent</h1>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Audio indicators -->
+      <section class="audio-indicators">
+        <div class="indicator-container">
+          <div class="audio-ring user-ring" id="userRing">
+            <div class="ring-inner"></div>
+          </div>
+          <span class="indicator-label">You</span>
+        </div>
+
+        <div class="indicator-container">
+          <div class="audio-ring bot-ring" id="botRing">
+            <div class="ring-inner"></div>
+          </div>
+          <span class="indicator-label">Bot</span>
+          <div class="bot-status disconnected" id="botStatus">
+            <span class="status-dot"></span>
+            <span class="status-label">Disconnected</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Connect button -->
+      <section class="connect-section">
+        <button class="btn-connect" id="connectBtn">
+          <span class="btn-text">Connect</span>
+        </button>
+      </section>
+
+      <!-- Settings (collapsed) -->
+      <section class="settings-section">
+        <details class="settings-details">
+          <summary>Settings</summary>
+          <div class="settings-content">
+          
+          <div class="form-group">
+            <label for="apiKey">OpenAI API Key:</label>
+            <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label for="agentName">Agent name (wake word):</label>
+            <input type="text" id="agentName" value="Alex" placeholder="Alex">
+            <span class="hint">Say this name to activate the agent</span>
+          </div>
+
+          <div class="form-group">
+            <label for="voiceSelect">Agent voice:</label>
+            <select id="voiceSelect">
+              <option value="alloy">Alloy (neutral)</option>
+              <option value="ash">Ash (male)</option>
+              <option value="ballad">Ballad (soft)</option>
+              <option value="coral">Coral (female)</option>
+              <option value="echo">Echo (male)</option>
+              <option value="sage">Sage (wise)</option>
+              <option value="shimmer">Shimmer (female)</option>
+              <option value="verse">Verse (expressive)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="modelSelect">Model:</label>
+            <select id="modelSelect">
+              <option value="gpt-4o-mini-realtime-preview-2024-12-17">GPT-4o Mini Realtime (default)</option>
+              <option value="gpt-4o-realtime-preview-2024-12-17">GPT-4o Realtime</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="stopWords">Stop words:</label>
+            <input type="text" id="stopWords" value="thanks, stop, enough, bye" placeholder="thanks, stop, bye">
+            <span class="hint">Comma-separated. Agent will stop when it hears these</span>
+          </div>
+
+          <div class="form-group">
+            <label for="systemPrompt">System prompt:</label>
+            <textarea id="systemPrompt" rows="4" placeholder="Instructions for the agent..."></textarea>
+            <button class="btn-link" id="resetPrompt">Reset to default</button>
+          </div>
+
+          <div class="form-group">
+            <label>Tools:</label>
+            <div class="tools-list">
+              <label class="checkbox-item">
+                <input type="checkbox" id="toolWebSearch" checked>
+                <span>🔍 Web search</span>
+              </label>
+              <div class="tool-config" id="webSearchConfig">
+                <input type="password" id="tavilyKey" placeholder="Tavily API key (tvly-...)">
+                <a href="https://tavily.com" target="_blank" class="btn-link">Get free key</a>
+              </div>
+              <label class="checkbox-item">
+                <input type="checkbox" id="toolDateTime" checked>
+                <span>🕐 Date & time</span>
+              </label>
+              <label class="checkbox-item">
+                <input type="checkbox" id="toolCalculator" checked>
+                <span>🧮 Calculator</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <span class="warning-icon">⚠</span>
+            <span>API key will be saved in browser. Use only on personal computer.</span>
+          </div>
+
+          <div class="settings-actions">
+            <button class="btn-save" id="saveSettings">
+              💾 Save settings
+            </button>
+            <button class="btn-link btn-danger" id="clearSettings">
+              Clear saved data
+            </button>
+          </div>
+          </div>
+        </details>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Hidden elements for compatibility -->
+  <div style="display:none;">
+    <button id="toggleApiKey"></button>
+    <button id="togglePrompt"></button>
+    <button id="toggleTools"></button>
+    <button id="clearTranscript"></button>
+    <button id="disconnectBtn"></button>
+    <button id="resetPrompt"></button>
+    <input type="checkbox" id="rememberSettings">
+    <input type="text" id="stopWords">
+    <input type="text" id="instructions">
+    <div id="promptContainer"></div>
+    <div id="toolsContainer"></div>
+    <div id="transcriptLog"></div>
+    <div id="statusIndicator" data-status="disconnected"><span class="status-text"></span></div>
+    <div id="modeIndicator"><span class="mode-badge"></span></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
