@@ -9,7 +9,7 @@
 
 const STORAGE_KEY = 'podcast_agent_settings';
 const DIALOGUE_TIMEOUT_MS = 30000; // 30 sec silence → exit dialogue
-const TRANSCRIPT_DEBOUNCE_MS = 500; // Pause before analyzing transcript
+const TRANSCRIPT_DEBOUNCE_MS = 400; // Pause before analyzing transcript
 
 const DEFAULT_STOP_WORDS = 'thanks, stop, enough, bye';
 
@@ -475,7 +475,7 @@ function setupDataChannel() {
           type: 'server_vad',
           threshold: 0.6,
           prefix_padding_ms: 300,
-          silence_duration_ms: 1200,
+          silence_duration_ms: 1000,
           create_response: false
         },
         tools: tools
@@ -633,8 +633,8 @@ function processTranscript(text) {
       return;
     }
     
-    // In dialogue mode respond to everything
-    respond();
+    // In dialogue mode API auto-responds (create_response: true)
+    // Just reset timeout, no need to call respond()
     resetDialogueTimeout();
     return;
   }
@@ -858,6 +858,7 @@ function enterDialogueMode() {
   state.mode = AgentMode.DIALOGUE;
   setStatus('dialogue', 'Dialogue active');
   updateModeIndicator();
+  updateVADMode(true);
   resetDialogueTimeout();
 }
 
@@ -866,6 +867,7 @@ function exitDialogueMode() {
   clearTimeout(dialogueTimeout);
   setStatus('idle', 'Listening (passive)');
   updateModeIndicator();
+  updateVADMode(false);
 }
 
 function enterIdleMode() {
@@ -879,6 +881,26 @@ function resetDialogueTimeout() {
   dialogueTimeout = setTimeout(() => {
     exitDialogueMode();
   }, DIALOGUE_TIMEOUT_MS);
+}
+
+function updateVADMode(autoResponse) {
+  // Update VAD settings based on mode
+  // In DIALOGUE mode: auto-response enabled (fast)
+  // In IDLE mode: auto-response disabled (wait for name check)
+  sendEvent({
+    type: 'session.update',
+    session: {
+      turn_detection: {
+        type: 'server_vad',
+        threshold: 0.6,
+        prefix_padding_ms: 300,
+        silence_duration_ms: 700,
+        create_response: autoResponse
+      }
+    }
+  });
+  
+  console.log(`🔧 VAD mode updated: create_response=${autoResponse}`);
 }
 
 // ============================================
@@ -1012,6 +1034,13 @@ function setUserSpeaking(speaking) {
 
 function setBotSpeaking(speaking) {
   if (elements.botRing) {
+    // In disconnected or idle (waiting) mode, always disable indicator
+    if (!state.isConnected || state.mode === AgentMode.IDLE) {
+      elements.botRing.style.setProperty('--level', 0);
+      elements.botRing.classList.remove('active');
+      return;
+    }
+    
     if (speaking) {
       elements.botRing.style.setProperty('--level', 100);
       elements.botRing.classList.add('active');
